@@ -1,14 +1,28 @@
 class Node:
-    def __init__(self):
-        self.nextNode = []
-        self.isIntersection = False
-        self.receivesIntersection = False
+    def __init__(self, x, z):
+        self.x = x
+        self.z = z
+        self.grid_postition = None
+        self.nextNodes = []
 
-    def setNextNode(self, nextNode):
-        self.nextNode = nextNode
+    def setCoodinates(self, x, z):
+        self.x = x
+        self.z = z
+
+    def setGridPosition(self, x, z):
+        self.grid_postition = (x, z)
+
+    def getGridPosition(self):
+        return self.grid_postition
+
+    def getCoordinates(self):
+        return self.x, self.z
+
+    def addNextNode(self, nextNode):
+        self.nextNodes.append(nextNode)
 
     def getNextNode(self):
-        return self.nextNode
+        return self.nextNodes
 
     def setIsIntersection(self, isIntersection: bool):
         self.isIntersection = isIntersection

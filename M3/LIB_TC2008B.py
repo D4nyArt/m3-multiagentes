@@ -1,6 +1,7 @@
 import pygame, random, glob, math, numpy
-from Car import Car
+from CarImplementation import Car
 from Settings import Settings
+from Node import Node
 
 from pygame.locals import *
 from OpenGL.GL import *
@@ -10,12 +11,89 @@ from OpenGL.GLUT import *
 textures = []
 cars = []
 delta = 0
+nodes = []
 
 settings = Settings("Settings.yaml")
 
+tam_tablero = settings.DimBoard * 2  # Cambia esto según el tamaño real de tu tablero
+num_celdas = 8
+tam_celda = tam_tablero / num_celdas  # Tamaño de cada celda en el tablero
 
-def GeneracionDeNodos():
-    print("")
+
+def GeneracionDeNodos(nodes):
+    node_positions = {}  # Map from (i, j) to node index
+    index = 0
+
+    intersection_positions = {
+        (3, 2): [(2, 3), (3, 5), (5, 4)],
+        (5, 3): [(4, 2), (2, 3), (3, 5)],
+        (2, 4): [(3, 5), (5, 4), (4, 2)],
+        (4, 5): [(5, 4), (4, 2), (2, 3)],
+    }
+
+    # Generate nodes in the cross pattern and store their grid positions
+    for i in range(num_celdas):
+        for j in range(num_celdas):
+            if i in range(3, 5) or j in range(3, 5):
+                x_centro = -tam_tablero / 2 + (i + 0.5) * tam_celda
+                z_centro = -tam_tablero / 2 + (j + 0.5) * tam_celda
+                node = Node(x_centro, z_centro)
+                node.setGridPosition(i, j)
+                nodes.append(node)
+                node_positions[(i, j)] = index
+                index += 1
+
+    # Assign 'nextNodes' for each node according to street logic
+    for idx, node in enumerate(nodes):
+        i, j = node.getGridPosition()
+
+        # For all nodes, including intersections, add possible next nodes in both directions
+        # Vertical movement (nodes in columns 3 and 4)
+        if i in range(3, 5):
+            # Move upwards (decrease j)
+            if j > 0:
+                next_i = i
+                next_j = j - 1
+                if (next_i, next_j) in node_positions:
+                    next_node_idx = node_positions[(next_i, next_j)]
+                    node.addNextNode(nodes[next_node_idx])
+            # Move downwards (increase j)
+            if j < num_celdas - 1:
+                next_i = i
+                next_j = j + 1
+                if (next_i, next_j) in node_positions:
+                    next_node_idx = node_positions[(next_i, next_j)]
+                    node.addNextNode(nodes[next_node_idx])
+
+        # Horizontal movement (nodes in rows 3 and 4)
+        if j in range(3, 5):
+            # Move left (decrease i)
+            if i > 0:
+                next_i = i - 1
+                next_j = j
+                if (next_i, next_j) in node_positions:
+                    next_node_idx = node_positions[(next_i, next_j)]
+                    node.addNextNode(nodes[next_node_idx])
+            # Move right (increase i)
+            if i < num_celdas - 1:
+                next_i = i + 1
+                next_j = j
+                if (next_i, next_j) in node_positions:
+                    next_node_idx = node_positions[(next_i, next_j)]
+                    node.addNextNode(nodes[next_node_idx])
+
+        # Intersection nodes: add additional paths if needed
+        if (i, j) in intersection_positions:
+            # For intersection nodes, add the specified next nodes
+            for next_i, next_j in intersection_positions[(i, j)]:
+                if (next_i, next_j) in node_positions:
+                    next_node_idx = node_positions[(next_i, next_j)]
+                    node.addNextNode(nodes[next_node_idx])
+
+    for node in nodes:
+        print(f"Node at {node.getGridPosition()} has next nodes:")
+        for next_node in node.nextNodes:
+            print(f"  -> {next_node.getGridPosition()}")
 
 
 def Texturas(filepath):
@@ -43,6 +121,8 @@ def Init(Options):
         (settings.screen_width, settings.screen_height), DOUBLEBUF | OPENGL
     )
     pygame.display.set_caption("M3")
+
+    GeneracionDeNodos(nodes)
 
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -78,21 +158,16 @@ def Init(Options):
     rowLifts = Options.cars
     Positions = numpy.zeros((rowLifts, colsDim))
 
-    for i in range(rowLifts):
-        for j in range(colsDim):
-            if j != 1:
-                Positions[i, j] = 0
-
-    CurrentNode = 0
+    currentNodeIndex = 0
+    CurrentNode = nodes[currentNodeIndex]
 
     for i, p in enumerate(Positions):
-        # i es el identificator del agente
         if i == 0:
-            cars.append(Car(settings.DimBoard, 2, textures, i, p, CurrentNode, 0))
+            cars.append(Car(settings.DimBoard, 2, textures, i, p, CurrentNode))
         else:
-            cars.append(
-                Car(settings.DimBoard, 2, textures, i, p, random.randint(0, 27), 1)
-            )
+            random_node_index = random.randint(0, len(nodes) - 1)
+            random_node = nodes[random_node_index]
+            cars.append(Car(settings.DimBoard, 2, textures, i, p, random_node))
 
 
 def planoText():

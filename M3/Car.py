@@ -1,7 +1,7 @@
 import math, numpy
 from Settings import Settings
 from pygame.locals import *
-from Cubo import Cubo
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
@@ -9,25 +9,10 @@ import numpy
 import math
 import random
 from OpenGL.GL import *
+from Node import Node
+from Cubo import Cubo
 
 settings = Settings("Settings.yaml")
-
-
-tam_tablero = settings.DimBoard * 2  # Cambia esto según el tamaño real de tu tablero
-num_celdas = 8
-tam_celda = tam_tablero / num_celdas  # Tamaño de cada celda en el tablero
-
-# Crear la lista de nodos en el centro de cada celda dentro de la intersección
-nodos = []
-
-for i in range(num_celdas):
-    for j in range(num_celdas):
-        # Agregar nodos solo dentro de la intersección en forma de cruz
-        if i in range(3, 5) or j in range(3, 5):
-            # Calcular las coordenadas del centro de la celda
-            x_centro = -tam_tablero / 2 + (i + 0.5) * tam_celda
-            z_centro = -tam_tablero / 2 + (j + 0.5) * tam_celda
-            nodos.append([x_centro, 0, z_centro])  # Altura (Y) es 0
 
 
 class Car:
