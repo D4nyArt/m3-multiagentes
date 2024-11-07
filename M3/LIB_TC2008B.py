@@ -1,4 +1,4 @@
-import yaml, pygame, random, glob, math, numpy
+import pygame, random, glob, math, numpy
 from Car import Car
 from Settings import Settings
 
@@ -131,17 +131,6 @@ def planoText():
                 glVertex3f(x_inicio, 0, z_fin)
 
     glEnd()
-
-
-"""def checkCollisions():
-    for c in cars:
-        for b in basuras:
-            distance = math.sqrt(math.pow((b.Position[0] - c.Position[0]), 2) + math.pow((b.Position[2] - c.Position[2]), 2))
-            if distance <= c.radiusCol:
-                if c.status == "searching" and b.alive:
-                    b.alive = False
-                    c.status = "lifting"
-                #print("Colision detectada")"""
 
 
 def display():

@@ -1,4 +1,4 @@
-import pygame, random, math, numpy, yaml
+import math, numpy
 from Settings import Settings
 from pygame.locals import *
 from Cubo import Cubo
