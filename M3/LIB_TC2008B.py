@@ -20,80 +20,86 @@ num_celdas = 8
 tam_celda = tam_tablero / num_celdas  # Tamaño de cada celda en el tablero
 
 
-def GeneracionDeNodos(nodes):
-    node_positions = {}  # Map from (i, j) to node index
+def GeneracionDeNodos():
+    nodes = []
+    node_positions = {}  # Map from (i, j) to node index in nodes list
     index = 0
+    num_celdas = 8  # Grid size
+    tam_tablero = settings.DimBoard * 2
+    tam_celda = tam_tablero / num_celdas
 
-    intersection_positions = {
-        (3, 2): [(2, 3), (3, 5), (5, 4)],
-        (5, 3): [(4, 2), (2, 3), (3, 5)],
-        (2, 4): [(3, 5), (5, 4), (4, 2)],
-        (4, 5): [(5, 4), (4, 2), (2, 3)],
-    }
-
-    # Generate nodes in the cross pattern and store their grid positions
+    # Generate all nodes and store them in the nodes list
     for i in range(num_celdas):
         for j in range(num_celdas):
-            if i in range(3, 5) or j in range(3, 5):
-                x_centro = -tam_tablero / 2 + (i + 0.5) * tam_celda
-                z_centro = -tam_tablero / 2 + (j + 0.5) * tam_celda
-                node = Node(x_centro, z_centro)
-                node.setGridPosition(i, j)
-                nodes.append(node)
-                node_positions[(i, j)] = index
-                index += 1
+            x_centro = -tam_tablero / 2 + (j + 0.5) * tam_celda
+            z_centro = -tam_tablero / 2 + (i + 0.5) * tam_celda
+            node = Node(x_centro, z_centro)
+            node.setGridPosition(i, j)
+            nodes.append(node)
+            node_positions[(i, j)] = index
+            index += 1
 
-    # Assign 'nextNodes' for each node according to street logic
-    for idx, node in enumerate(nodes):
-        i, j = node.getGridPosition()
+    # Define the intersection nodes (only these nodes can have multiple nextNodes)
+    intersection_nodes = [19, 29, 34, 44]
 
-        # For all nodes, including intersections, add possible next nodes in both directions
-        # Vertical movement (nodes in columns 3 and 4)
-        if i in range(3, 5):
-            # Move upwards (decrease j)
-            if j > 0:
-                next_i = i
-                next_j = j - 1
-                if (next_i, next_j) in node_positions:
-                    next_node_idx = node_positions[(next_i, next_j)]
-                    node.addNextNode(nodes[next_node_idx])
-            # Move downwards (increase j)
-            if j < num_celdas - 1:
-                next_i = i
-                next_j = j + 1
-                if (next_i, next_j) in node_positions:
-                    next_node_idx = node_positions[(next_i, next_j)]
-                    node.addNextNode(nodes[next_node_idx])
+    # Define the node mappings as per your specified mapping
+    node_mappings = {
+        60: [52],
+        52: [44],
+        44: [37, 20, 26],  # Intersection node (44)
+        37: [38],
+        38: [39],
+        31: [30],
+        30: [29],
+        29: [20, 26, 43],  # Intersection node (29)
+        20: [12],
+        12: [4],
+        3: [11],
+        11: [19],
+        19: [26, 43, 37],  # Intersection node (19)
+        26: [25],
+        25: [24],
+        32: [33],
+        33: [34],
+        34: [43, 37, 20],  # Intersection node (34)
+        43: [51],
+        51: [59],
+        # Include other nodes if necessary
+    }
 
-        # Horizontal movement (nodes in rows 3 and 4)
-        if j in range(3, 5):
-            # Move left (decrease i)
-            if i > 0:
-                next_i = i - 1
-                next_j = j
-                if (next_i, next_j) in node_positions:
-                    next_node_idx = node_positions[(next_i, next_j)]
-                    node.addNextNode(nodes[next_node_idx])
-            # Move right (increase i)
-            if i < num_celdas - 1:
-                next_i = i + 1
-                next_j = j
-                if (next_i, next_j) in node_positions:
-                    next_node_idx = node_positions[(next_i, next_j)]
-                    node.addNextNode(nodes[next_node_idx])
+    # Assign nextNodes to nodes
+    for node_index, next_node_indices in node_mappings.items():
+        current_node = nodes[node_index]
+        if len(next_node_indices) > 1:
+            # Ensure only intersection nodes have multiple nextNodes
+            if node_index not in intersection_nodes:
+                print(
+                    f"Warning: Node {node_index} is not an intersection node but has multiple nextNodes."
+                )
+        else:
+            # Non-intersection nodes should have only one nextNode
+            if node_index in intersection_nodes:
+                print(f"Note: Intersection Node {node_index} has only one nextNode.")
+        # Assign the nextNodes
+        for next_node_index in next_node_indices:
+            next_node = nodes[next_node_index]
+            current_node.addNextNode(next_node)
 
-        # Intersection nodes: add additional paths if needed
-        if (i, j) in intersection_positions:
-            # For intersection nodes, add the specified next nodes
-            for next_i, next_j in intersection_positions[(i, j)]:
-                if (next_i, next_j) in node_positions:
-                    next_node_idx = node_positions[(next_i, next_j)]
-                    node.addNextNode(nodes[next_node_idx])
+    # Optional: Verify that no non-intersection node has multiple nextNodes
+    for i, node in enumerate(nodes):
+        if len(node.nextNodes) > 1 and i not in intersection_nodes:
+            print(
+                f"Error: Node {i} has multiple nextNodes but is not an intersection node."
+            )
 
-    for node in nodes:
-        print(f"Node at {node.getGridPosition()} has next nodes:")
-        for next_node in node.nextNodes:
-            print(f"  -> {next_node.getGridPosition()}")
+    return nodes, node_mappings
+
+
+def print_node_mappings(nodes):
+    for i, node in enumerate(nodes):
+        if node.nextNodes:
+            next_node_indices = [nodes.index(n) for n in node.nextNodes]
+            print(f"Node {i} -> Next Nodes: {next_node_indices}")
 
 
 def Texturas(filepath):
@@ -122,7 +128,8 @@ def Init(Options):
     )
     pygame.display.set_caption("M3")
 
-    GeneracionDeNodos(nodes)
+    nodes, node_mappings = GeneracionDeNodos()
+    starting_node_indices = [31, 3, 32, 60]
 
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -154,20 +161,15 @@ def Init(Options):
         Texturas(File)
 
     # Posiciones inicales de los montacargas
-    colsDim = 3
-    rowLifts = Options.cars
-    Positions = numpy.zeros((rowLifts, colsDim))
+    # colsDim = 3
+    # rowLifts = Options.cars
+    # Positions = numpy.zeros((rowLifts, colsDim))
 
-    currentNodeIndex = 0
-    CurrentNode = nodes[currentNodeIndex]
-
-    for i, p in enumerate(Positions):
-        if i == 0:
-            cars.append(Car(settings.DimBoard, 2, textures, i, p, CurrentNode))
-        else:
-            random_node_index = random.randint(0, len(nodes) - 1)
-            random_node = nodes[random_node_index]
-            cars.append(Car(settings.DimBoard, 2, textures, i, p, random_node))
+    for i in range(Options.cars):
+        # Assign starting nodes to cars in a round-robin fashion
+        currentNodeIndex = starting_node_indices[i % len(starting_node_indices)]
+        currentNode = nodes[currentNodeIndex]
+        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode))
 
 
 def planoText():

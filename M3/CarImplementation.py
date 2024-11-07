@@ -15,12 +15,12 @@ settings = Settings("Settings.yaml")
 
 
 class Car:
-    def __init__(self, dim, vel, textures, idx, position, currentNode):
+    def __init__(self, dim, vel, textures, idx, currentNode):
         self.dim = dim
         self.vel = vel
         self.idx = idx
-        self.Position = position
         self.currentNode = currentNode
+        self.Position = numpy.array([currentNode.x, 0, currentNode.z])
         self.nextNode = None
         self.Direction = numpy.zeros(3)
         self.speed = vel
