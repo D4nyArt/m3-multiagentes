@@ -169,7 +169,7 @@ def Init(Options):
         # Assign starting nodes to cars in a round-robin fashion
         currentNodeIndex = starting_node_indices[i % len(starting_node_indices)]
         currentNode = nodes[currentNodeIndex]
-        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode))
+        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode, currentNode))
 
 
 def planoText():

@@ -15,7 +15,7 @@ settings = Settings("Settings.yaml")
 
 
 class Car:
-    def __init__(self, dim, vel, textures, idx, currentNode):
+    def __init__(self, dim, vel, textures, idx, currentNode, initialNode):
         self.dim = dim
         self.vel = vel
         self.idx = idx
@@ -30,6 +30,8 @@ class Car:
         self.platformHeight = -1.5
         self.platformUp = False
         self.platformDown = False
+
+        self.initialNode= initialNode
 
     def update(self, delta):
         if not self.nextNode:
@@ -56,7 +58,8 @@ class Car:
             self.nextNode = random.choice(self.currentNode.nextNodes)
         else:
             # No available next nodes; handle accordingly (e.g., stop or reverse direction)
-            self.nextNode = None
+            self.Position = numpy.array([self.initialNode.x, 0, self.initialNode.z])
+            self.nextNode = random.choice(self.initialNode.nextNodes)
 
     def draw(self):
         glPushMatrix()
