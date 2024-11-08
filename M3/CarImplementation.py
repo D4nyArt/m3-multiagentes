@@ -15,7 +15,7 @@ settings = Settings("Settings.yaml")
 
 
 class Car:
-    def __init__(self, dim, vel, textures, idx, currentNode, initialNode):
+    def __init__(self, dim, vel, textures, idx, currentNode, initialNode, Lane, TrafficLight):
         self.dim = dim
         self.vel = vel
         self.idx = idx
@@ -32,6 +32,8 @@ class Car:
         self.platformDown = False
 
         self.initialNode= initialNode
+        self.TrafficLight = TrafficLight
+        self.Lane = Lane
 
     def update(self, delta):
         if not self.nextNode:
@@ -53,13 +55,29 @@ class Car:
                 self.Position += self.Direction * self.speed * delta
 
     def RetrieveNextNode(self):
-        if self.currentNode.nextNodes:
-            # Choose one of the next nodes (you can implement your own logic here)
-            self.nextNode = random.choice(self.currentNode.nextNodes)
+        if self.Lane == 'A':
+            if  not self.TrafficLight.greenA: # self.currentNode.getIsIntersection():
+                self.nextNode = self.currentNode
+            else:
+                if self.currentNode.nextNodes:
+                    # Choose one of the next nodes (implement your logic here)
+                    self.nextNode = random.choice(self.currentNode.nextNodes)
+                else:
+                    # No available next nodes; teleports to initNode
+                    self.Position = numpy.array([self.initialNode.x, 0, self.initialNode.z])
+                    self.nextNode = random.choice(self.initialNode.nextNodes)
+                
         else:
-            # No available next nodes; handle accordingly (e.g., stop or reverse direction)
-            self.Position = numpy.array([self.initialNode.x, 0, self.initialNode.z])
-            self.nextNode = random.choice(self.initialNode.nextNodes)
+            if  not self.TrafficLight.greenB: # and self.currentNode.getIsIntersection():
+                self.nextNode = self.currentNode
+            else:
+                if self.currentNode.nextNodes:
+                    # Choose one of the next nodes (implement your logic here)
+                    self.nextNode = random.choice(self.currentNode.nextNodes)
+                else:
+                    # No available next nodes; teleports to initNode
+                    self.Position = numpy.array([self.initialNode.x, 0, self.initialNode.z])
+                    self.nextNode = random.choice(self.initialNode.nextNodes)
 
     def draw(self):
         glPushMatrix()

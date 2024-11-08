@@ -4,6 +4,7 @@ class Node:
         self.z = z
         self.grid_postition = None
         self.nextNodes = []
+        self.isIntersection = None
 
     def setCoodinates(self, x, z):
         self.x = x

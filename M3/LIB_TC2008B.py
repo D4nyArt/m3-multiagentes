@@ -8,6 +8,8 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
+from Trafficlight import TrafficLight
+
 textures = []
 cars = []
 delta = 0
@@ -41,6 +43,10 @@ def GeneracionDeNodos():
 
     # Define the intersection nodes (only these nodes can have multiple nextNodes)
     intersection_nodes = [19, 29, 34, 44]
+
+    for idx in intersection_nodes:
+        if 0 <= idx < len(nodes):
+            nodes[idx].setIsIntersection(True)
 
     # Define the node mappings as per your specified mapping
     node_mappings = {
@@ -122,14 +128,15 @@ def Texturas(filepath):
 
 
 def Init(Options):
-    global textures, basuras, cars
+    global textures, trafficlight, cars
     screen = pygame.display.set_mode(
         (settings.screen_width, settings.screen_height), DOUBLEBUF | OPENGL
     )
     pygame.display.set_caption("M3")
 
     nodes, node_mappings = GeneracionDeNodos()
-    starting_node_indices = [31, 3, 32, 60]
+    starting_node_indices_A = [31, 32]
+    starting_node_indices_B = [3, 60]
 
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -160,16 +167,22 @@ def Init(Options):
     for File in glob.glob(settings.Materials + "*.*"):
         Texturas(File)
 
-    # Posiciones inicales de los montacargas
-    # colsDim = 3
-    # rowLifts = Options.cars
-    # Positions = numpy.zeros((rowLifts, colsDim))
+    trafficlight = TrafficLight(True, False)
 
-    for i in range(Options.cars):
+    lane_A_cars = int(Options.cars * 0.6)  # 50% more than lane B
+    lane_B_cars = Options.cars - lane_A_cars
+
+    for i in range(lane_A_cars):
         # Assign starting nodes to cars in a round-robin fashion
-        currentNodeIndex = starting_node_indices[i % len(starting_node_indices)]
+        currentNodeIndex = starting_node_indices_A[i % len(starting_node_indices_A)]
         currentNode = nodes[currentNodeIndex]
-        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode, currentNode))
+        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode, currentNode, 'A', trafficlight))
+
+    for i in range(lane_B_cars):
+        # Assign starting nodes to cars in a round-robin fashion
+        currentNodeIndex = starting_node_indices_B[i % len(starting_node_indices_A)]
+        currentNode = nodes[currentNodeIndex]
+        cars.append(Car(settings.DimBoard, 2, textures, i, currentNode, currentNode, 'B', trafficlight))
 
 
 def planoText():
@@ -211,8 +224,10 @@ def planoText():
 
 
 def display():
-    global cars, delta
+    global cars, delta, trafficlight
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    
+    trafficlight.update()
 
     # Se dibuja cars
     for obj in cars:
