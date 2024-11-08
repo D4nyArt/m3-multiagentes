@@ -1,4 +1,4 @@
-import pygame, random, glob, math, numpy
+import pygame, random, glob, math, numpy, time
 from CarImplementation import Car
 from Settings import Settings
 from Node import Node
@@ -12,6 +12,8 @@ textures = []
 cars = []
 delta = 0
 nodes = []
+semaforo = [False,False,False,True]
+
 
 settings = Settings("Settings.yaml")
 
@@ -217,7 +219,7 @@ def display():
     # Se dibuja cars
     for obj in cars:
         obj.draw()
-        obj.update(delta)
+        obj.update(delta,semaforo)
 
     # Se dibuja el plano gris
     planoText()
@@ -320,6 +322,7 @@ def Simulacion(Options):
     radius = Options.radious
     delta = Options.Delta
     Init(Options)
+    i = 0
     while True:
         keys = pygame.key.get_pressed()  # Checking pressed keys
         for event in pygame.event.get():
@@ -339,7 +342,19 @@ def Simulacion(Options):
             else:
                 theta -= 1.0
         lookAt(theta)
-        display()
+        #print(time.time())
+        if int(time.time()) % 8 == 0:
+            print(semaforo)
+            semaforo[i] = True
+            semaforo[i-1] = False
+            
+            i += 1
+            if i == 4:
+                i = 0
+            pygame.time.wait(1000)
+            
+
+        #display()
         display()
         pygame.display.flip()
         pygame.time.wait(10)

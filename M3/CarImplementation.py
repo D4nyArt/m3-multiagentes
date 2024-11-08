@@ -1,4 +1,4 @@
-import math, numpy
+import math, numpy, time
 from Settings import Settings
 from pygame.locals import *
 from OpenGL.GL import *
@@ -33,24 +33,34 @@ class Car:
 
         self.initialNode= initialNode
 
-    def update(self, delta):
-        if not self.nextNode:
-            self.RetrieveNextNode()
+    def update(self, delta,semaforo):
+        
+        if self.currentNode.getGridPosition() == (4,2) and semaforo[0] == False:
+            pass
+        elif self.currentNode.getGridPosition() == (5,4) and semaforo[1] == False:
+            pass
+        elif self.currentNode.getGridPosition() == (3,5) and semaforo[2] == False:
+            pass
+        elif self.currentNode.getGridPosition() == (2,3) and semaforo[3] == False:
+            pass
+        else:
+            if not self.nextNode:
+                self.RetrieveNextNode()
 
-        if self.nextNode:
-            direction_vector = (
-                numpy.array([self.nextNode.x, 0, self.nextNode.z]) - self.Position
-            )
-            distance = numpy.linalg.norm(direction_vector)
+            if self.nextNode:
+                direction_vector = (
+                    numpy.array([self.nextNode.x, 0, self.nextNode.z]) - self.Position
+                )
+                distance = numpy.linalg.norm(direction_vector)
 
-            if distance < self.speed * delta:
-                # Reached the next node
-                self.Position = numpy.array([self.nextNode.x, 0, self.nextNode.z])
-                self.currentNode = self.nextNode
-                self.nextNode = None  # Reset to choose the next node
-            else:
-                self.Direction = direction_vector / distance
-                self.Position += self.Direction * self.speed * delta
+                if distance < self.speed * delta:
+                    # Reached the next node
+                    self.Position = numpy.array([self.nextNode.x, 0, self.nextNode.z])
+                    self.currentNode = self.nextNode
+                    self.nextNode = None  # Reset to choose the next node
+                else:
+                    self.Direction = direction_vector / distance
+                    self.Position += self.Direction * self.speed * delta
 
     def RetrieveNextNode(self):
         if self.currentNode.nextNodes:
